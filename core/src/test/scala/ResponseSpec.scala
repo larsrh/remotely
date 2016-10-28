@@ -17,8 +17,6 @@
 
 package remotely
 
-import org.scalacheck._
-import Prop._
 import scala.concurrent.{ExecutionContext,Future}
 import scalaz.Monad
 
