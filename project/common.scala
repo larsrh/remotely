@@ -51,16 +51,20 @@ object common {
         case _ => Nil
       }
     ),
-    unmanagedSourceDirectories in Compile +=
-      (sourceDirectory in Compile).value / "macros" / s"scala-${scalaBinaryVersion.value}"
+    unmanagedSourceDirectories in Compile += {
+      if (scalaBinaryVersion.value.startsWith("2.10"))
+        (sourceDirectory in Compile).value / "macros" / s"scala-2.10"
+      else
+        (sourceDirectory in Compile).value / "macros" / s"scala-2.11"
+    }
   )
 
   val scalaTestVersion  = SettingKey[String]("scalatest version")
   val scalaCheckVersion = SettingKey[String]("scalacheck version")
 
   def testSettings = Seq(
-    scalaTestVersion     := "2.2.5",
-    scalaCheckVersion    := "1.11.6",
+    scalaTestVersion     := "3.0.0",
+    scalaCheckVersion    := "1.13.2",
     libraryDependencies ++= Seq(
       "org.scalatest"  %% "scalatest"  % scalaTestVersion.value  % "test",
       "org.scalacheck" %% "scalacheck" % scalaCheckVersion.value % "test"
