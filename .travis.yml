@@ -7,11 +7,6 @@ scala:
 jdk:
   - oraclejdk8
 
-# don't pointlessly build tags and dev branches
-branches:
-  only:
-    - master
-
 # push onto the new gce infra on travis
 sudo: required
 
@@ -22,11 +17,3 @@ cache:
   directories:
     - $HOME/.ivy2/cache
     - $HOME/.sbt/boot/scala-$TRAVIS_SCALA_VERSION
-
-notifications:
-  irc:
-    channels:
-      - "chat.freenode.net#oncue"
-    template:
-      - "%{repository} (%{commit}) : %{message} %{foo} "
-      - "Build details: %{build_url}"
