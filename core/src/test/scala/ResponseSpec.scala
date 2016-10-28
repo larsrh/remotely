@@ -22,9 +22,11 @@ import Prop._
 import scala.concurrent.{ExecutionContext,Future}
 import scalaz.Monad
 
-object ResponseSpec extends Properties("Response") {
+import org.scalatest.{FlatSpec, Matchers}
 
-  property("stack safety") = {
+class ResponseSpec extends FlatSpec with Matchers {
+
+  "Response" should "be stack safe" in {
     import ExecutionContext.Implicits.global
     val N = 100000
     val responses = (0 until N).map(Monad[Response].pure(_))
@@ -38,9 +40,9 @@ object ResponseSpec extends Properties("Response") {
     val ctx = Response.Context.empty
     val expected = (0 until N).sum
 
-    leftFold(responses)(ctx).run == expected &&
-    rightFold(responses)(ctx).run == expected /*&&
-    leftFold(responses2)(ctx).run == expected &&
-    rightFold(responses2)(ctx).run == expected*/
+    leftFold(responses)(ctx).run should be (expected)
+    rightFold(responses)(ctx).run should be (expected)
+    leftFold(responses2)(ctx).run should be (expected)
+    rightFold(responses2)(ctx).run should be (expected)
   }
 }
