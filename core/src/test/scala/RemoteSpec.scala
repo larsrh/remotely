@@ -23,8 +23,10 @@ import org.scalacheck._
 import Prop._
 import scalaz.concurrent.Task
 import transport.netty._
+import org.scalatest.{FlatSpec,BeforeAndAfterAll}
+import org.scalatest.prop.Checkers
 
-object RemoteSpec extends Properties("Remote") {
+class RemoteSpec extends FlatSpec with Checkers with BeforeAndAfterAll{
   import codecs._
   import Remote.implicits._
 
@@ -58,55 +60,68 @@ object RemoteSpec extends Properties("Remote") {
 
   val ctx = Response.Context.empty
 
-  property("roundtrip") =
-    forAll { (l: List[Int], kvs: Map[String,String]) =>
+  "Remotely" should "roundtrip" in {
+    check { (l: List[Int], kvs: Map[String,String]) =>
       l.sum == sum(l).runWithoutContext(loc).run//(loc, ctx ++ kvs).run
     }
+  }
 
-  property("roundtrip[Double]") =
-    forAll { (l: List[Double], kvs: Map[String,String]) =>
+  it should "roundtrip[Double]" in {
+    check { (l: List[Double], kvs: Map[String,String]) =>
       l.sum == sumD(l).runWithContext(loc, ctx ++ kvs).run
     }
+  }
 
-  property("roundtrip[List[Int]]") =
-    forAll { (l: List[Int], kvs: Map[String,String]) =>
+  it should "roundtrip[List[Int]]" in {
+    check { (l: List[Int], kvs: Map[String,String]) =>
       l.map(_ + 1) == mapI(l).runWithContext(loc, ctx ++ kvs).run
     }
-
-  property("check-serializers") = secure {
-    // verify that server returns a meaningful error when it asks for
-    // decoder(s) the server does not know about
-    val wrongsum = Remote.ref[List[Float] => Float]("sum")
-    val t: Task[Float] = wrongsum(List(1.0f, 2.0f, 3.0f)).runWithContext(loc, ctx)
-    t.attemptRun.fold(
-      e => {
-        println("test resulted in error, as expected:")
-        println(prettyError(e.toString))
-        true
-      },
-      a => false
-    )
   }
 
-  property("check-declarations") = secure {
-    // verify that server returns a meaningful error when client asks
-    // for a remote ref that is unknown
-    val wrongsum = Remote.ref[List[Int] => Int]("product")
-    val t: Task[Int] = wrongsum(List(1, 2, 3)).runWithContext(loc, ctx)
-    t.attemptRun.fold(
-      e => {
-        println("test resulted in error, as expected:")
-        println(prettyError(e.toString))
-        true
-      },
-      a => false
-    )
+  it should "check-serializers" in {
+    check {
+      secure {
+        // verify that server returns a meaningful error when it asks for
+        // decoder(s) the server does not know about
+        val wrongsum = Remote.ref[List[Float] => Float]("sum")
+        val t: Task[Float] = wrongsum(List(1.0f, 2.0f, 3.0f)).runWithContext(loc, ctx)
+        t.attemptRun.fold(
+          e => {
+            println("test resulted in error, as expected:")
+            println(prettyError(e.toString))
+            true
+          },
+          a => false
+        )
+      }
+    }
   }
 
-  property("add3") =
-    forAll { (one: Int, two: Int, three: Int) =>
+  it should "check-declarations" in {
+    check {
+      secure {
+        // verify that server returns a meaningful error when client asks
+        // for a remote ref that is unknown
+        val wrongsum = Remote.ref[List[Int] => Int]("product")
+        val t: Task[Int] = wrongsum(List(1, 2, 3)).runWithContext(loc, ctx)
+        t.attemptRun.fold(
+          e => {
+            println("test resulted in error, as expected:")
+            println(prettyError(e.toString))
+            true
+          },
+          a => false
+        )
+      }
+    }
+  }
+
+  it should "add3" in {
+    check { (one: Int, two: Int, three: Int) =>
       add3(one, two, three).runWithoutContext(loc).run == (one + two + three)
     }
+  }
+
 /* These take forever on travis, and so I'm disabling them, we should leave benchmarking of scodec to scodec and handle benchmarking of remotely in the benchmarking sub-projects
 
   property("encoding speed") = {
@@ -145,11 +160,9 @@ object RemoteSpec extends Properties("Remote") {
   }
  */
 
-  // NB: this property should always appear last, so it runs after all properties have run
-  property("cleanup") = lazily {
+  override def afterAll() = {
     server.run
     nettyTrans.pool.close()
-    true
   }
 
   def time(a: => Unit): Long = {
@@ -164,7 +177,7 @@ object RemoteSpec extends Properties("Remote") {
 
   def lazily(p: => Prop): Prop = {
     lazy val pe = secure { p }
-    new Prop { def apply(p: org.scalacheck.Gen.Parameters) = pe(p) }
+    Prop((p: org.scalacheck.Gen.Parameters) => pe(p))
   }
 
 }
