@@ -20,26 +20,13 @@ import sbtrelease.ReleasePlugin.autoImport._
 import sbtrelease.ReleaseStateTransformations._
 import sbtrelease.Utilities._
 import com.typesafe.sbt.pgp.PgpKeys._
-import bintray.BintrayKeys._
-import sbtassembly.Plugin._
 
 object common {
-  import AssemblyKeys._
 
   def settings =
-    bintraySettings ++
     releaseSettings ++
     publishingSettings ++
     testSettings
-
-  def mergeSettings = Seq(
-    mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
-      {
-        case "META-INF/io.netty.versions.properties" => MergeStrategy.discard
-        case x => old(x)
-      }
-    }
-  )
 
   def macrosSettings = Seq(
     addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
@@ -78,13 +65,6 @@ object common {
     publishLocalSigned := (),
     publishArtifact in Test := false,
     publishArtifact in Compile := false
-  )
-
-  def bintraySettings = Seq(
-    bintrayPackageLabels := Seq("remote", "functional programming", "rpc", "reasonable"),
-    bintrayOrganization := Some("oncue"),
-    bintrayRepository := "releases",
-    bintrayPackage := "remotely"
   )
 
   def releaseSettings = Seq(

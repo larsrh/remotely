@@ -8,8 +8,4 @@ testSettings
 
 promptSettings
 
-assemblySettings
-
-mergeSettings
-
 publish := {}
