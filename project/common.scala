@@ -128,5 +128,4 @@ object common {
     publishArtifact in Test := false
   )
 
-  def promptSettings = Prompt.settings
 }

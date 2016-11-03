@@ -7,6 +7,4 @@ scalacOptions ++= Seq(
 
 macrosSettings
 
-promptSettings
-
 ignoreSettings

@@ -4,6 +4,4 @@ macrosSettings
 
 testSettings
 
-promptSettings
-
 ignoreSettings
