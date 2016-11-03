@@ -107,6 +107,7 @@ lazy val core = project.in(file("core"))
   .settings(macroSettings)
   .settings(testSettings)
   .settings(
+    moduleName := "remotely",
     scalacOptions ++= Seq(
       "-Ywarn-value-discard",
       "-Xlint",
